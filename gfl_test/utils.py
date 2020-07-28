@@ -2,7 +2,7 @@ from functools import wraps
 import time
 
 
-def running_time(exec_times=1):
+def running_time(exec_times=1, res=None):
 
     def decorator(func):
 
@@ -18,6 +18,9 @@ def running_time(exec_times=1):
             print("Exec %s for %s times." % (func.__name__, exec_times))
             print(" |--clock time: %sms" % (1000 * (end_clock - start_clock)))
             print(" |--real  time: %sms" % (1000 * (end_time - start_time)))
+            if res is not None:
+                res["clock_time"] = end_clock - start_clock
+                res["real_time"] = end_time - start_time
             return ret
 
         return wrapper

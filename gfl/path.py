@@ -1,5 +1,6 @@
 import os
 
+
 RUNTIME_CONFIG_SERVER_PATH = os.path.join(os.path.abspath("."), "runtime_config_server.json")
 RUNTIME_CONFIG_CLIENT_PATH = os.path.join(os.path.abspath("."), "runtime_config_server.json")
 AGGREGATE_PATH = "tmp_aggregate_pars"
@@ -12,6 +13,8 @@ g = globals().copy()
 for key, value in g.items():
     if key.endswith("_DIR_PATH"):
         os.makedirs(value, exist_ok=True)
+
+
 class PathFactory(object):
 
     def __init__(self):
@@ -57,7 +60,6 @@ class PathFactory(object):
         dir_path = os.path.join(PathFactory.get_job_model_path(job_id), "tmp_aggregate_pars")
         os.makedirs(dir_path, exist_ok=True)
         return os.path.join(dir_path, "avg_pars_{}".format(0))
-
 
     @staticmethod
     def get_job_init_model_code_path(job_id):
