@@ -36,4 +36,3 @@ class Model(object):
     def get_job_id(self):
         return self.job_id
 
-
