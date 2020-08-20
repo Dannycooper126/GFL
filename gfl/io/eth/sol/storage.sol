@@ -18,6 +18,7 @@ contract Storage {
 
     address[] selectedClients;
 
+    address[] distilledClients;
     // fed step -> model parameters
     mapping(uint => ModelParameter[]) modelParameters;
 
@@ -29,10 +30,10 @@ contract Storage {
 
     string final_aggregated_model_parameters;
 
-    function __addressValidation(address sender) private view returns(bool) {
+    function __addressValidation() private view returns(bool) {
 
         for(uint i=0; i<activateClients.length; i++){
-            if(sender == activateClients[i]){
+            if(msg.sender == activateClients[i]){
                 return true;
             }
         }
@@ -48,19 +49,19 @@ contract Storage {
         return fedStep;
     }
 
-    function updateActivateClients(address _clientAddress, uint8 op) public {
+    function updateActivateClients(uint8 op) public {
 
         uint sym = 0;
         bool isHave = false;
         for(uint i=0; i<activateClients.length; i++){
-            if(_clientAddress == activateClients[i]){
+            if(msg.sender == activateClients[i]){
                 isHave = true;
                 sym = i;
                 break;
             }
         }
         if(!isHave && op == 0){
-            activateClients.push(_clientAddress);
+            activateClients.push(msg.sender);
         }else if(isHave  && op == 1){
             activateClients[sym] = activateClients[activateClients.length - 1];
             delete activateClients[activateClients.length - 1];
@@ -70,39 +71,50 @@ contract Storage {
     }
 
     function uploadModelParametersIpfsHash(uint _fedStep, address _clientAddress, string memory _modelParsIpfsHash) public {
+        require(__addressValidation())
+        if(selectedClients.length * 2 >= activateClients.length) {
+            distilledClients[_fedStep] = selectionClientAddress()
+            ModelParameter memory modelParameter = ModelParameter(msg.sender, _modelParsIpfsHash);
 
-        ModelParameter memory modelParameter = ModelParameter(_clientAddress, _modelParsIpfsHash);
-
-        modelParameters[_fedStep].push(modelParameter);
+            modelParameters[_fedStep].push(modelParameter);
+        }
+        
     }
 
     function downloadModelParametersIpfsHash(uint _fedStep, address _clientAddress) public view returns(ModelParameter[] memory) {
+        require(__addressValidation())
 
-       return modelParameters[_fedStep];
+        return modelParameters[_fedStep];
 
     }
     function uploadAggreagtedParametersIpfsHash(uint _fedStep, address _modelClientAddress, string memory _aggregatedModelParsIpfsHash) public {
-
-        ModelParameter memory modelParameter = ModelParameter(_modelClientAddress, _aggregatedModelParsIpfsHash);
+        require(__addressValidation())
+        ModelParameter memory modelParameter = ModelParameter(msg.sender, _aggregatedModelParsIpfsHash);
 
         aggregatedParameters[_fedStep] = modelParameter;
 
     }
 
     function downloadAggreagtedParametersIpfsHash(uint _fedStep) public view returns(ModelParameter memory){
+        require(__addressValidation())
         return aggregatedParameters[_fedStep];
     }
 
 
     function uploadFinalAggregatedParametersIpfsHash(string memory _finalAggregatedIpfsHash) public {
-
+        require(__addressValidation())
         final_aggregated_model_parameters = _finalAggregatedIpfsHash;
     }
 
 
     function downloadFinalAggregatedParametersIpfsHash() public view returns (string memory) {
+        require(__addressValidation())
         return final_aggregated_model_parameters;
     }
 
+    function selectionClientAddress() public view returns (string memory) {
+        uint random = uint(keccak256(msg.sender, now))) % activateClients.length;
+        return activateClients[random] 
+    }
 
 }
